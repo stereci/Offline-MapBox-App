@@ -1,102 +1,192 @@
-# Flutter Mapbox GL Native
+1)flutter create map_app2
+2)cd map_app
+3)flutter run
+4)cd map_app2
+5)git clone githttps://github.com/stereci/Offline-MapBox-App.git
+6)Then update your pubspec.yaml to reference the directory where the project was cloned.
+dependencies:
+  ...
+  mapbox_gl:
+    path: ./flutter-mapbox-gl
+7)flutter pub get
 
-> **Please note that this project is community driven and is not an official Mapbox product.** We welcome [feedback](https://github.com/tobrun/flutter-mapbox-gl/issues) and contributions.
+Android Changes
+8)Add your API token to the AndroidManifest -> android/app/src/main/AndroidManifest.xml
+<application
+    android:name="io.flutter.app.FlutterApplication"
+    android:label="map_app"
+    android:icon="@mipmap/ic_launcher">    <meta-data android:name="com.mapbox.token"
+        android:value="YOUR API KEY" />    <activity
+    ...
+</application>
+9)You will also need to migrate the ./android directory to use androidx by adding the following two lines to ./android/gradle.properties
+android.useAndroidX=true
+android.enableJetifier=true
 
-This Flutter plugin for [mapbox-gl-native](https://github.com/mapbox/mapbox-gl-native) enables
-embedded interactive and customizable vector maps inside a Flutter widget by embedding Android and iOS views.
+iOS Changes
+10)ios/Runner/Info.plist
+<plist version="1.0">
+<dict>
+    ...
+    <key>MGLMapboxAccessToken</key>
+    <string>YOUR API KEY</string
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
+</dict>
+</plist>
+11)ios/Podfile
+Uncomment the platform line to target iOS 9 required by the mapbox_gl plugin and add the use frameworks! line.
+# Uncomment this line to define a global platform for your project
+platform :ios, '9.0'
+use_frameworks!
 
-![screenshot.png](screenshot.png)
+THE CODE -> main.dart(last stage)
 
-## Install
-This project is available on [pub.dev](https://pub.dev/packages/mapbox_gl), follow the [instructions](https://flutter.dev/docs/development/packages-and-plugins/using-packages#adding-a-package-dependency-to-an-app) to integrate a package into your flutter application.
+import 'package:flutter/material.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
-## :new: :new: Who's using this SDK :new: :new:
+import 'dart:async';
+import 'dart:io';
+import 'package:path/path.dart';
 
-We're compiling a list of apps using this SDK. If you want to be listed here, please open a PR and add yourself below (or open a ticket and we'll add you).
+void main() => runApp(MyApp());
 
-- You?
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(home: MapWidget());
+  }
+}
 
-### Running example app
+class MapWidget extends StatefulWidget {
+  @override
+  _MapWidgetState createState() => _MapWidgetState();
+}
 
-- Install [Flutter](https://flutter.io/get-started/) and validate its installation with `flutter doctor`
-- Clone this repository with `git clone git@github.com:mapbox/flutter-mapbox-gl.git`
-- Run the app with `cd flutter_mapbox/example && flutter run`
+class _MapWidgetState extends State<MapWidget> {
+  final CameraPosition _kInitialPosition;
+  final CameraTargetBounds _cameraTargetBounds;
+  static double defaultZoom = 12.0;
 
-#### Mapbox Access Token
+  var _tilesLoaded = false;
 
-This project uses Mapbox vector tiles, which requires a Mapbox account and a Mapbox access token. Obtain a free access token on [your Mapbox account page](https://www.mapbox.com/account/access-tokens/).
-> **Even if you do not use Mapbox vector tiles but vector tiles from a different source (like self-hosted tiles) with this plugin, you will need to specify any non-empty string as Access Token as explained below!**
+  CameraPosition _position;
+  MapboxMapController mapController;
+  bool _isMoving = false;
+  bool _compassEnabled = true;
+  MinMaxZoomPreference _minMaxZoomPreference =
+  const MinMaxZoomPreference(12.0, 18.0);
+  String _styleString = "mapbox://styles/mapbox/streets-v11";
+  bool _rotateGesturesEnabled = true;
+  bool _scrollGesturesEnabled = true;
+  bool _tiltGesturesEnabled = false;
+  bool _zoomGesturesEnabled = true;
+  bool _myLocationEnabled = false;
+  MyLocationTrackingMode _myLocationTrackingMode = MyLocationTrackingMode.None;
 
-##### Android
-Add Mapbox read token value in the application manifest ```android/app/src/main/AndroidManifest.xml:```
+  _MapWidgetState._(
+      this._kInitialPosition, this._position, this._cameraTargetBounds);
 
-```<manifest ...
-  <application ...
-    <meta-data android:name="com.mapbox.token" android:value="YOUR_TOKEN_HERE" />
-```
-
-#### iOS
-Add these lines to your Info.plist
-
-```plist
-<key>io.flutter.embedded_views_preview</key>
-<true/>
-<key>MGLMapboxAccessToken</key>
-<string>YOUR_TOKEN_HERE</string>
-```
-
-## Supported API
-
-| Feature | Android | iOS |
-| ------ | ------ | ----- |
-| Style | :white_check_mark:   | :white_check_mark: |
-| Camera | :white_check_mark:   | :white_check_mark: |
-| Gesture | :white_check_mark:   | :white_check_mark: |
-| User Location | :white_check_mark: | :white_check_mark: |
-| Symbol | :white_check_mark:   | :white_check_mark: |
-| Circle | :white_check_mark:   | :white_check_mark: |
-| Line | :white_check_mark:   | :white_check_mark: |
-| Fill |   |  |
-
-## Offline Sideloading
-
-Support for offline maps is available by *"side loading"* the required map tiles and including them in your `assets` folder.
-
-* Create your tiles package by following the guide available [here](https://docs.mapbox.com/ios/maps/overview/offline/).
-
-* Place the tiles.db file generated in step one in your assets directory and add a reference to it in your `pubspec.yml` file.
-
-```
-   assets:
-     - assets/cache.db
-```
-
-* Call `installOfflineMapTiles` when your application starts to copy your tiles into the location where Mapbox can access them.  **NOTE:** This method should be called **before** the Map widget is loaded to prevent collisions when copying the files into place.
- 
-```
+  static CameraPosition _getCameraPosition() {
+    final latLng = LatLng(41.0082, 28.9784);
+    return CameraPosition(
+      target: latLng,
+      zoom: defaultZoom,
+    );
+  }
+  @override
+  initState() {
+    super.initState();
+    _copyTilesIntoPlace();
+  }  _copyTilesIntoPlace() async {
     try {
       await installOfflineMapTiles(join("assets", "cache.db"));
     } catch (err) {
       print(err);
+    }    setState(() {
+      this._tilesLoaded = true;
+    });
+  }
+
+  factory _MapWidgetState() {
+    CameraPosition cameraPosition = _getCameraPosition();
+
+    final cityBounds = LatLngBounds(
+      southwest: LatLng(40.9682, 29.0384),
+      northeast: LatLng(41.0582, 28.9184),
+    );
+
+    return _MapWidgetState._(
+        cameraPosition, cameraPosition, CameraTargetBounds(cityBounds));
+  }
+
+  void _onMapChanged() {
+    setState(() {
+      _extractMapInfo();
+    });
+  }
+
+  @override
+  void dispose() {
+    if (mapController != null) {
+      mapController.removeListener(_onMapChanged);
     }
-```
+    super.dispose();
+  }
 
-## Documentation
+  void _extractMapInfo() {
+    _position = mapController.cameraPosition;
+    _isMoving = mapController.isCameraMoving;
+  }
 
-This README file currently houses all of the documentation for this Flutter project. Please visit [mapbox.com/android-docs](https://www.mapbox.com/android-docs/) if you'd like more information about the Mapbox Maps SDK for Android and [mapbox.com/ios-sdk](https://www.mapbox.com/ios-sdk/) for more information about the Mapbox Maps SDK for iOS.
+  @override
+  Widget build(BuildContext context) {
+    if (this._tilesLoaded) {
+      return Container(
+        child: _buildMapBox(context),
+      );
+    } else {
+      return Center(
+        child: new CircularProgressIndicator(),
+      );
+    }
+  }
 
-## Getting Help
+  MapboxMap _buildMapBox(BuildContext context) {
+    return MapboxMap(
+        onMapCreated: onMapCreated,
+        initialCameraPosition: this._kInitialPosition,
+        trackCameraPosition: true,
+        compassEnabled: _compassEnabled,
+        cameraTargetBounds: _cameraTargetBounds,
+        minMaxZoomPreference: _minMaxZoomPreference,
+        styleString: _styleString,
+        rotateGesturesEnabled: _rotateGesturesEnabled,
+        scrollGesturesEnabled: _scrollGesturesEnabled,
+        tiltGesturesEnabled: _tiltGesturesEnabled,
+        zoomGesturesEnabled: _zoomGesturesEnabled,
+        myLocationEnabled: _myLocationEnabled,
+        myLocationTrackingMode: _myLocationTrackingMode,
+        onCameraTrackingDismissed: () {
+          this.setState(() {
+            _myLocationTrackingMode = MyLocationTrackingMode.None;
+          });
+        });
+  }
 
-- **Need help with your code?**: Look for previous questions on the [#mapbox tag](https://stackoverflow.com/questions/tagged/mapbox+flutter) — or [ask a new question](https://stackoverflow.com/questions/tagged/mapbox+android).
-- **Have a bug to report?** [Open an issue](https://github.com/tobrun/flutter-mapbox-gl/issues/new). If possible, include a full log and information which shows the issue.
-- **Have a feature request?** [Open an issue](https://github.com/tobrun/flutter-mapbox-gl/issues/new). Tell us what the feature should do and why you want the feature.
+  void onMapCreated(MapboxMapController controller) {
+    mapController = controller;
+    mapController.addListener(_onMapChanged);
+    _extractMapInfo();
+    setState(() {});
+  }
+}
 
-## Sample code
-
-[This repository's example library](https://github.com/tobrun/flutter-mapbox-gl/tree/master/example/lib) is currently the best place for you to find reference code for this project.
-
-## Contributing
-
-We welcome contributions to this repository!
-
-If you're interested in helping build this Mapbox/Flutter integration, please read [the contribution guide](https://github.com/tobrun/flutter-mapbox-gl/blob/master/CONTRIBUTING.md) to learn how to get started.
+Adding the tiles
+With the map tiles downloaded we add them to our assets directory. The db files needs to be named cache.db.
+11)mkdir -p map_app/assets/
+12)cp mapbox-gl-native/mapcache.db map_app/assets/cache.db
+13)Update your pubspec.yaml to include the cache.db file into your app
+assets:
+    - assets/cache.db
+14)Run in Airplane mode
