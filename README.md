@@ -51,10 +51,12 @@ use_frameworks!
 
 **Adding the tiles**
 With the map tiles downloaded we add them to our assets directory. The db files needs to be named cache.db.
-* mkdir -p map_app/assets/
-*cp mapbox-gl-native/mapcache.db map_app/assets/cache.db
-*Update your pubspec.yaml to include the cache.db file into your app
+```
+mkdir -p map_app/assets/
+cp mapbox-gl-native/mapcache.db map_app/assets/cache.db
+Update your pubspec.yaml to include the cache.db file into your app
     assets:
         - assets/cache.db
+```
 *Run in Airplane mode
 
