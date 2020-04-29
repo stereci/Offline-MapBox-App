@@ -43,6 +43,7 @@
 </plist>
 ```
 * ios/Podfile *
+\n 
 Uncomment the platform line to target iOS 9 required by the mapbox_gl plugin and add the use frameworks! line.
 
 ```
@@ -52,7 +53,7 @@ use_frameworks!
 ```
 * flutter run //until here, if u run your app, it will open an online mapbox app, for offline support follow the steps
 
-Build MapBox tools
+**Build MapBox tools**
 * git clone https://github.com/mapbox/mapbox-gl-native.git
 * cd mapbox-gl-native
 * make
