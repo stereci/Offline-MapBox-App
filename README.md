@@ -43,9 +43,6 @@
 </plist>
 ```
 * ios/Podfile 
-``
-Uncomment the platform line to target iOS 9 required by the mapbox_gl plugin and add the use frameworks! line.
-``
 ```
 # Uncomment this line to define a global platform for your project
 platform :ios, '9.0'
