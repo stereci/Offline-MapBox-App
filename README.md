@@ -1,9 +1,9 @@
 ## Getting Started
 
-* flutter create map_app2
-* cd map_app
+* flutter create mapapp
+* cd mapapp
 * flutter run
-* cd map_app2
+* cd Offline-MapBox-App
 * git clone githttps: ->github.com/stereci/Offline-MapBox-App.git
 * Then update your pubspec.yaml to reference the directory where the project was cloned.
 ```
