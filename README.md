@@ -42,12 +42,14 @@
 </dict>
 </plist>
 ```
-* ios/Podfile
+* ios/Podfile *
 Uncomment the platform line to target iOS 9 required by the mapbox_gl plugin and add the use frameworks! line.
+
+```
 # Uncomment this line to define a global platform for your project
 platform :ios, '9.0'
 use_frameworks!
-
+```
 * flutter run //until here, if u run your app, it will open an online mapbox app, for offline support follow the steps
 
 Build MapBox tools
