@@ -48,6 +48,12 @@ Uncomment the platform line to target iOS 9 required by the mapbox_gl plugin and
 platform :ios, '9.0'
 use_frameworks!
 
+* flutter run //until here, if u run your app, it will open an online mapbox app, for offline support follow the steps
+
+Build MapBox tools
+* git clone https://github.com/mapbox/mapbox-gl-native.git
+* cd mapbox-gl-native
+* make
 
 **Adding the tiles**
 With the map tiles downloaded we add them to our assets directory. The db files needs to be named cache.db.
@@ -58,5 +64,5 @@ Update your pubspec.yaml to include the cache.db file into your app
     assets:
         - assets/cache.db
 ```
-*Run in Airplane mode
+* Run in Airplane mode
 
