@@ -6,10 +6,12 @@
 * cd map_app2
 * git clone githttps: ->github.com/stereci/Offline-MapBox-App.git
 * Then update your pubspec.yaml to reference the directory where the project was cloned.
-*    dependencies:
+```
+    dependencies:
      ...
     mapbox_gl:
        path: ./Offline-MapBox-App
+```
 * flutter pub get
 
 **Android Changes**
