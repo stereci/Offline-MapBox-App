@@ -9,7 +9,7 @@
      dependencies:
        ...
        mapbox_gl:
-     path: ./flutter-mapbox-gl
+     path: ./Offline-MapBox-App
 * flutter pub get
 
 **Android Changes**
